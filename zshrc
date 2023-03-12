@@ -56,3 +56,5 @@ export NVM_DIR="$HOME/.nvm"
 ### direnv ###
 eval "$(direnv hook zsh)"
 
+### Haskell ###
+[ -f "/Users/satorun/.ghcup/env" ] && source "/Users/satorun/.ghcup/env" # ghcup-env
