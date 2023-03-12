@@ -1,4 +1,7 @@
-dotfiles
+# dotfiles
 ========
 
-dotfiles
+setup
+```
+./setup
+```
