@@ -1,6 +1,11 @@
-### alias ###
-alias python="python3"
+#!/bin/bash
 
+### alias ###
+alias ls="ls -FG"
+alias la="ls -a"
+alias ll='ls -al'
+
+alias python="python3"
 
 ### zsh-git-prompt ###
 source /opt/homebrew/opt/zsh-git-prompt/zshrc.sh
@@ -30,13 +35,15 @@ precmd() {
 
 ### zsh-completions ###
 if type brew &>/dev/null; then
-  FPATH=$(brew --prefix)/share/zsh-completions:$FPATH
+  FPATH=/opt/homebrew/share/zsh-completions:$FPATH
   autoload -Uz compinit && compinit
 fi
 
 ### zsh-autosuggestions ###
 source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-
+autoload colors
+zstyle ':completion:*' list-colors ''
+setopt list_packed
 
 #######
 # DEV

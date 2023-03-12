@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 # Homebrew
 if ! (type brew > /dev/null 2>&1); then
   xcode-select --install
@@ -16,5 +18,14 @@ fi
 
 if [ ! -e ~/.zshrc ]; then
   cp zshrc ~/.zshrc
+
+  ## pre cmd
+  chmod -R go-w /opt/homebrew/share
+
+  echo "source ~/.zshrc"
   source ~/.zshrc 
+  echo "complete!"
+
+  ## post cmd
+  rm -f ~/.zcompdump; compinit
 fi
