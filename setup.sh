@@ -35,8 +35,27 @@ if [ ! -e ~/.zshrc ]; then
 fi
 
 
-### .zshrc
+### .vimrc
 if [ ! -e ~/.vimrc ]; then
   echo "cp .vimrc"
   cp vimrc ~/.vimrc
+fi
+
+### .gitconfig
+if [ ! -e ~/.gitconfig ]; then
+  echo "cp .gitconfig"
+  cp gitconfig ~/.gitconfig
+fi
+if [ ! -e ~/project ]; then
+    echo "mkdir project/work project/other dir"
+    mkdir -p ~/project/work
+    mkdir -p ~/project/other
+fi
+if [ ! -e ~/.gitconfig-work ]; then
+  echo "cp .gitconfig-work"
+  cp gitconfig-work ~/.gitconfig-work
+fi
+if [ ! -e ~/.gitconfig-other ]; then
+  echo "cp .gitconfig-other"
+  cp gitconfig-other ~/.gitconfig-other
 fi
