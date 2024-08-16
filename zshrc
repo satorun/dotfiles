@@ -1,24 +1,37 @@
-#!/bin/bash
+zstyle ":completion:*:commands" rehash 1
 
-### alias ###
+# path
+typeset -U path PATH
+path=(
+  /opt/homebrew/bin(N-/)
+  /opt/homebrew/sbin(N-/)
+  /usr/bin
+  /usr/sbin
+  /bin
+  /sbin
+  /usr/local/bin(N-/)
+  /usr/local/sbin(N-/)
+  /Library/Apple/usr/bin
+  ~/node_modules/.bin
+)
+
+
+# alias
+alias python="python3"
+# -F でファイル種別の表示
+# -G で色を付ける (GNU/Linux での "--color=auto" と等価)
 alias ls="ls -FG"
 alias la="ls -a"
-alias ll='ls -al'
+alias ll="ls -l"
+alias lla="ls -la"
 
-alias python="python3"
 
-### zsh-git-prompt ###
-source /opt/homebrew/opt/zsh-git-prompt/zshrc.sh
-
-### PROMPT ###
+# prompt
 autoload -Uz colors && colors
-git_prompt() {
-  if [ "$(git rev-parse --is-inside-work-tree 2> /dev/null)" = true ]; then
-    PROMPT="%F{green}%n%f %F{cyan}($(arch))%f:%F{blue}%~%f $(git_super_status)"$'\n'"%# "
-  else
-    PROMPT="%F{green}%n%f %F{cyan}($(arch))%f:%F{blue}%~%f"$'\n'"%# "
-  fi
-}
+source $(brew --prefix)/opt/zsh-git-prompt/zshrc.sh
+
+PROMPT='%F{034}%n%f %F{036}($(arch))%f:%F{075}%~%f $(git_super_status)'
+PROMPT+=""$'\n'"%# "
 
 add_newline() {
   if [[ -z $PS1_NEWLINE_LOGIN ]]; then
@@ -28,33 +41,57 @@ add_newline() {
   fi
 }
 
+git_prompt() {
+  if [ "$(git rev-parse --is-inside-work-tree 2> /dev/null)" = true ]; then
+    PROMPT='%F{034}%n%f %F{036}($(arch))%f:%F{020}%~%f $(git_super_status)'
+    PROMPT+=""$'\n'"%# "
+  else
+    PROMPT="%F{034}%n%f %F{036}($(arch))%f:%F{020}%~%f "$'\n'"%# "
+  fi
+}
+
 precmd() {
-  git_prompt
+#  git_prompt
   add_newline
 }
 
-### zsh-completions ###
+
+# zsh-complietions, zsh-autosuggestions
 if type brew &>/dev/null; then
-  FPATH=/opt/homebrew/share/zsh-completions:$FPATH
-  autoload -Uz compinit && compinit
+  FPATH=$(brew --prefix)/share/zsh-completions:$FPATH
+  source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+  autoload -Uz compinit
+  compinit
 fi
 
-### zsh-autosuggestions ###
-source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-autoload colors
-zstyle ':completion:*' list-colors ''
-setopt list_packed
+# Customize to your needs...
+export GOPATH=$HOME/go
+export GOROOT="$(brew --prefix golang)/libexec"
+export PATH=$PATH:$HOME/go/bin
+alias rmdd='rm -rf ~/Library/Developer/Xcode/DerivedData/*'
 
-#######
-# DEV
-######
-### nvm ###
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/Users/satorun/miniforge3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/Users/satorun/miniforge3/etc/profile.d/conda.sh" ]; then
+        . "/Users/satorun/miniforge3/etc/profile.d/conda.sh"
+    else
+        export PATH="/Users/satorun/miniforge3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+
+export VOLTA_HOME="$HOME/.volta"
+export PATH="$VOLTA_HOME/bin:$PATH"
+
 export NVM_DIR="$HOME/.nvm"
-  [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
-  [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
-### direnv ###
-eval "$(direnv hook zsh)"
 
-### Haskell ###
-[ -f "/Users/satorun/.ghcup/env" ] && source "/Users/satorun/.ghcup/env" # ghcup-env
+export PATH="$PATH:/Users/satorun/development/flutter/bin"
+eval "$(rbenv init - zsh)"
