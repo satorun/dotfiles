@@ -1,69 +1,70 @@
-"---------
-" 入力
-"---------
-" タブをスペースに
-set expandtab
-" タブ幅を4に
-set tabstop=4
-" インデントを前の行に合わせる
-set autoindent
-" ファイルごとの設定を読み込む
-filetype plugin indent on
+" 基本設定
+" 文字コードをUTF-8に設定
+set encoding=utf-8
+set fileencoding=utf-8
+set fileencodings=utf-8,iso-2022-jp,euc-jp,sjis
 
-"---------
-" 表示
-"---------
-" 行番号
-set number
-" 暗い背景にあった色を使おうとする
-set background=dark
-" シンタックスハイライト
-syntax on
-" カラースキーム
-colorscheme desert
-" コメントの色を緑に
-hi Comment ctermfg=2
-" エラー時の音消去
-set noerrorbells
-" 対応するカッコなどを表示
-set showmatch matchtime=1
-" 対応する括弧に一瞬ジャンプする
-set showmatch
-" ステータス行を常に表示
-set laststatus=2
-" ノーマルモードのコマンドを表示
+" バックアップファイルを作らない
+set nobackup
+" スワップファイルを作らない
+set noswapfile
+" 編集中のファイルが変更されたら自動で読み直す
+set autoread
+" バッファが編集中でもその他のファイルを開けるように
+set hidden
+" 入力中のコマンドをステータスに表示する
 set showcmd
-" カーソル位置を表示
-set ruler
-" カーソルがある行を強調する
-set cursorline
-" 行末を '↲,'、タブを '>...'、末尾のスペースを '_' で表示
-set listchars=eol:↲,tab:>.,trail:_
-hi NonText    ctermbg=NONE ctermfg=59 guibg=NONE guifg=NONE
-hi SpecialKey ctermbg=NONE ctermfg=205 guibg=NONE guifg=NONE
-" 制御文字を表示
-set list
-    
-"---------
-" 検索
-"---------
-"先頭に戻る
-set wrapscan
-"文字毎に検索
-set incsearch
-"検索テキストをすべてハイライト
-set hlsearch
-"大文字小文字を区別しない
-set ignorecase
-"大文字で検索した場合は大文字小文字を区別する
-set smartcase
 
-"---------
-" ノーマルモード
-"---------
-" コマンド拡張
-set wildmenu
-" コマンドラインの履歴を10000件保存する
-set history=10000
-" ヤンクでクリップボードにコピー
-set clipboard=unnamed,autoselect
+
+" 見た目系
+" 行番号を表示
+set number
+" 現在の行を強調表示
+set cursorline
+" 現在の行を強調表示(縦)
+set cursorcolumn
+" 行末の1文字先までカーソルを移動できるように
+set virtualedit=onemore
+" インデントはスマートインデント
+set smartindent
+" ビープ音を可視化
+set visualbell
+" 括弧入力時の対応する括弧を表示
+set showmatch
+" ステータスラインを常に表示
+set laststatus=2
+" コマンドラインの補完
+set wildmode=list:longest
+" 折り返し時に表示行単位での移動できるようにする
+nnoremap j gj
+nnoremap k gk
+" シンタックスハイライトの有効化
+syntax on
+" macOSのクリップボードを使用
+set clipboard=unnamed
+
+
+" Tab系
+" 不可視文字を可視化(タブが「▸-」と表示される)
+set list listchars=tab:\▸\-
+" Tab文字を半角スペースにする
+set expandtab
+" 行頭以外のTab文字の表示幅(スペースいくつ分)
+set tabstop=2
+" 行頭でのTab文字の表示幅
+set shiftwidth=2
+
+
+" 検索系
+" 検索文字列が小文字の場合は大文字小文字を区別なく検索する
+set ignorecase
+" 検索文字列に大文字が含まれている場合は区別して検索する
+set smartcase
+" 検索文字列入力時に順次対象文字列にヒットさせる
+set incsearch
+" 検索時に最後まで行ったら最初に戻る
+set wrapscan
+" 検索語をハイライト表示
+set hlsearch
+" ESC連打でハイライト解除
+nmap <Esc><Esc> :nohlsearch<CR><Esc>
