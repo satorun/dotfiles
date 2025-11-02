@@ -3,7 +3,26 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+
 [includeIf "gitdir:~/project/work/"]
-  path = ~/.gitconfig-work
+	path = ~/.gitconfig-work
+
 [includeIf "gitdir:~/project/other/"]
-  path = ~/.gitconfig-other
+	path = ~/.gitconfig-other
+
+[core]
+	excludesfile = ~/.gitignore_global
+	editor = vim
+
+[merge]
+	tool = vimdiff
+
+[color]
+	ui = auto
+
+[alias]
+	st = status
+	co = checkout
+	br = branch
+	up = rebase
+	ci = commit
