@@ -1,5 +1,3 @@
-tap "homebrew/bundle"
-
 # GitHub CLI - 汎用的な開発ツール
 brew "gh"
 
