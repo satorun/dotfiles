@@ -58,20 +58,42 @@ fi
 #######
 # Brewfile
 #######
-echo_info "Setting up Brewfile..."
-if [ ! -e ~/.Brewfile ]; then
-  echo_info "Copying Brewfile to ~/.Brewfile"
-  cp "$DOTFILES_DIR/Brewfile" ~/.Brewfile
-  echo_info "Installing packages from Brewfile..."
-  brew bundle --global
-  echo_success "Brewfile packages installed"
-else
-  echo_info "~/.Brewfile already exists"
-  read "?Update packages from Brewfile? (y/N): " answer
-  if [[ "$answer" == "y" ]] || [[ "$answer" == "Y" ]]; then
-    brew bundle --global
-    echo_success "Brewfile packages updated"
+echo_info "Checking Brewfile packages..."
+
+# Brewfileから必要なパッケージを抽出
+REQUIRED_PACKAGES=$(grep '^brew ' "$DOTFILES_DIR/Brewfile" | awk '{print $2}' | tr -d '"')
+
+# 現在インストール済みのパッケージ
+INSTALLED_PACKAGES=$(brew list --formula)
+
+# 差分を確認
+MISSING_PACKAGES=()
+INSTALLED_FROM_BREWFILE=()
+
+for pkg in $REQUIRED_PACKAGES; do
+  if echo "$INSTALLED_PACKAGES" | grep -q "^${pkg}$"; then
+    INSTALLED_FROM_BREWFILE+=($pkg)
+  else
+    MISSING_PACKAGES+=($pkg)
   fi
+done
+
+# 結果表示
+if [ ${#INSTALLED_FROM_BREWFILE[@]} -gt 0 ]; then
+  echo_success "Already installed: ${INSTALLED_FROM_BREWFILE[@]}"
+fi
+
+if [ ${#MISSING_PACKAGES[@]} -gt 0 ]; then
+  echo_info "Missing packages: ${MISSING_PACKAGES[@]}"
+  read "?Install missing packages? (y/N): " answer
+  if [[ "$answer" == "y" ]] || [[ "$answer" == "Y" ]]; then
+    brew install ${MISSING_PACKAGES[@]}
+    echo_success "Packages installed"
+  else
+    echo_warn "Skipped package installation"
+  fi
+else
+  echo_success "All Brewfile packages are already installed"
 fi
 
 #######
