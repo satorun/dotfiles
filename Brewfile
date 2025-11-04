@@ -1,10 +1,7 @@
-tap "homebrew/bundle"
-brew "direnv"
+# GitHub CLI - 汎用的な開発ツール
 brew "gh"
-brew "mas"
-brew "mysql"
-brew "nvm"
-brew "zsh-autosuggestions"
+
+# zsh拡張 - zshrcで使用される基本機能
 brew "zsh-completions"
 brew "zsh-git-prompt"
-cask "xcodes"
+brew "zsh-autosuggestions"
