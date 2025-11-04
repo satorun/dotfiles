@@ -25,15 +25,20 @@ pwd
 ```
 
 ### 2. Homebrew処理
-setup.shと同じロジック：
-- Homebrewがなければインストール
+Homebrewがインストールされていない場合のみ実行：
+- Homebrewのインストール
 - Xcode Command Line Toolsのチェック
 - エラー時は適切に対応
 
-### 3. Brewfile処理
-setup.shと同じロジック：
-- `~/.Brewfile`がなければコピー + `brew bundle --global`
-- あれば更新を確認
+### 3. Brewfileパッケージ処理
+
+1. **リポジトリのBrewfileから必要なパッケージを確認**
+2. **現在インストール済みのパッケージを確認** (`brew list`)
+3. **差分を表示**：
+   - 既にインストール済みのパッケージ
+   - 新規インストールが必要なパッケージ
+4. **ユーザーに確認**：「新規パッケージをインストールしますか？」
+5. **承認後に実行**：`brew install <パッケージ名>`
 
 ### 4. 設定ファイルの統合（zshrc, vimrc, gitconfig, gitignore_global）
 
