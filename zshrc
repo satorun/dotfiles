@@ -69,7 +69,7 @@ git_prompt() {
     fi
     PROMPT+=$'\n'"%# "
   else
-    PROMPT="%F{034}%n%f %F{036}($(arch))%f:%F{020}%~%f "$'\n'"%# "
+    PROMPT="%F{034}%n%f %F{036}($(arch))%f:%F{075}%~%f "$'\n'"%# "
   fi
 }
 

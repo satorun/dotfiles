@@ -12,28 +12,39 @@ macOS開発環境の自動セットアップスクリプトと設定ファイル
 - プロジェクトディレクトリ作成(~/project/work, ~/project/other)
 
 ### Brewfile
-Homebrew管理パッケージ一覧
-- **開発ツール**: gh(GitHub CLI), nvm(Node.jsバージョン管理), mysql, direnv
+Homebrew管理パッケージ一覧（最小構成）
+- **開発ツール**: gh(GitHub CLI)
 - **zshプラグイン**: zsh-autosuggestions, zsh-completions, zsh-git-prompt
-- **GUI**: xcodes(Xcodeバージョン管理)
-- **更新方法**: `brew bundle dump --global --force`
+
+**注意**: 環境依存の開発ツール(nvm, direnv, mysql等)は含まれていません。必要に応じて個別にインストールしてください。zshrcにコメントアウトされた設定例があります。
 
 ### zshrc
 zsh設定ファイル
 - エイリアス設定(ls, python等)
 - カスタムプロンプト(ユーザー名、アーキテクチャ、Gitステータス表示)
 - zsh補完機能、自動サジェスト有効化
-- nvm、direnv統合
+- 開発ツール設定はコメントアウト（nvm, direnv, Go, Ruby, Python, Flutter等）
 
 ### gitconfig
 Git設定(条件付きインクルード)
 - Git LFS設定
+- 便利なエイリアス(st, co, br, up, ci)
+- エディタ設定(vim)、マージツール(vimdiff)
 - ディレクトリ別設定切り替え:
   - `~/project/work/` → `~/.gitconfig-work`
   - `~/project/other/` → `~/.gitconfig-other`
 
+### gitignore_global
+グローバルgitignore設定
+- macOS固有ファイル(.DS_Store等)
+- IDE設定ファイル(.idea, .vscode等)
+- 環境変数ファイル(.env等)
+
 ### vimrc
 Vim基本設定
+- UTF-8文字コード設定
+- 検索、表示、Tab設定
+- macOSクリップボード連携
 
 ## セットアップ手順
 ```bash
