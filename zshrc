@@ -100,52 +100,77 @@ if [ -f /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
 fi
 
 #######
-# DEV TOOLS (環境依存 - 必要に応じて有効化)
+# DEV TOOLS (環境依存 - インストールされていれば自動的に有効化)
 #######
 
+### mise (統合開発ツールバージョンマネージャー) ###
+if [ -f "$HOME/.local/bin/mise" ]; then
+  eval "$("$HOME/.local/bin/mise" activate zsh)"
+  export PATH="$HOME/.local/share/mise/shims:$PATH"
+fi
+
 ### nvm (Node.js version manager) ###
-# export NVM_DIR="$HOME/.nvm"
-# [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
-# [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+if [ -s "/opt/homebrew/opt/nvm/nvm.sh" ]; then
+  export NVM_DIR="$HOME/.nvm"
+  \. "/opt/homebrew/opt/nvm/nvm.sh"
+  [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+fi
 
 ### Volta (Node.js version manager - nvmの代替) ###
-# export VOLTA_HOME="$HOME/.volta"
-# export PATH="$VOLTA_HOME/bin:$PATH"
+if [ -d "$HOME/.volta" ]; then
+  export VOLTA_HOME="$HOME/.volta"
+  export PATH="$VOLTA_HOME/bin:$PATH"
+fi
 
 ### direnv ###
-# eval "$(direnv hook zsh)"
+if type direnv &>/dev/null; then
+  eval "$(direnv hook zsh)"
+fi
 
 ### Go ###
-# export GOPATH=$HOME/go
-# export GOROOT="$(brew --prefix golang)/libexec"
-# export PATH=$PATH:$HOME/go/bin
+if type go &>/dev/null; then
+  export GOPATH=$HOME/go
+  if type brew &>/dev/null && [ -d "$(brew --prefix golang)/libexec" ]; then
+    export GOROOT="$(brew --prefix golang)/libexec"
+  fi
+  export PATH=$PATH:$HOME/go/bin
+fi
 
 ### Haskell ###
-# [ -f "$HOME/.ghcup/env" ] && source "$HOME/.ghcup/env"
+[ -f "$HOME/.ghcup/env" ] && source "$HOME/.ghcup/env"
 
 ### Ruby (rbenv) ###
-# eval "$(rbenv init - zsh)"
+if type rbenv &>/dev/null; then
+  eval "$(rbenv init - zsh)"
+fi
 
 ### Python (conda/miniforge) ###
-# __conda_setup="$('$HOME/miniforge3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-# if [ $? -eq 0 ]; then
-#     eval "$__conda_setup"
-# else
-#     if [ -f "$HOME/miniforge3/etc/profile.d/conda.sh" ]; then
-#         . "$HOME/miniforge3/etc/profile.d/conda.sh"
-#     else
-#         export PATH="$HOME/miniforge3/bin:$PATH"
-#     fi
-# fi
-# unset __conda_setup
+if [ -f "$HOME/miniforge3/bin/conda" ]; then
+  __conda_setup="$('$HOME/miniforge3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+  if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+  else
+    if [ -f "$HOME/miniforge3/etc/profile.d/conda.sh" ]; then
+      . "$HOME/miniforge3/etc/profile.d/conda.sh"
+    else
+      export PATH="$HOME/miniforge3/bin:$PATH"
+    fi
+  fi
+  unset __conda_setup
+fi
 
 ### Flutter (fvm) ###
-# export PATH="$PATH:$HOME/development/flutter/bin:$HOME/fvm/default/bin"
-# alias flutter="fvm flutter"
-# alias dart="fvm dart"
+if [ -d "$HOME/fvm/default/bin" ]; then
+  export PATH="$PATH:$HOME/development/flutter/bin:$HOME/fvm/default/bin"
+  alias flutter="fvm flutter"
+  alias dart="fvm dart"
+fi
 
 ### Dart CLI completion ###
-# [[ -f $HOME/.dart-cli-completion/zsh-config.zsh ]] && . $HOME/.dart-cli-completion/zsh-config.zsh || true
+[ -f "$HOME/.dart-cli-completion/zsh-config.zsh" ] && . "$HOME/.dart-cli-completion/zsh-config.zsh"
 
 ### Custom tools ###
-# [ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
+
+### Kiro (Terminal App) ###
+[[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)" 2>/dev/null
