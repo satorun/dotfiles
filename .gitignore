@@ -2,3 +2,4 @@
 # 既にリポジトリに含まれているが、今後の変更は追跡しない
 gitconfig-work
 gitconfig-other
+.claude/settings.local.json
