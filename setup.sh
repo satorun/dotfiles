@@ -108,12 +108,21 @@ else
   echo_warn "~/.zshrc already exists (skipped)"
 fi
 
-# zsh補完のパーミッション修正（より限定的に）
-if [ -d "$(brew --prefix)/share/zsh-completions" ]; then
-  chmod -R go-w "$(brew --prefix)/share/zsh-completions" 2>/dev/null || true
+# zsh補完のパーミッション修正（"insecure directories"警告を防ぐ）
+echo_info "Fixing zsh completion directory permissions..."
+if [ -d "$(brew --prefix)/share" ]; then
+  # 親ディレクトリの権限修正
+  chmod go-w "$(brew --prefix)/share" 2>/dev/null || true
+  # zsh関連ディレクトリの権限を再帰的に修正
+  chmod -R go-w "$(brew --prefix)/share/zsh"* 2>/dev/null || true
+  echo_success "Directory permissions fixed"
 fi
-if [ -d "$(brew --prefix)/share/zsh/site-functions" ]; then
-  chmod -R go-w "$(brew --prefix)/share/zsh/site-functions" 2>/dev/null || true
+
+# zsh補完キャッシュの削除（次回起動時に再構築される）
+if [ -f ~/.zcompdump ]; then
+  echo_info "Removing zsh completion cache..."
+  rm -f ~/.zcompdump
+  echo_success "Completion cache removed (will be rebuilt on next shell startup)"
 fi
 
 #######
