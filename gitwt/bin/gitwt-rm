@@ -28,6 +28,13 @@ fi
 
 BRANCH="$1"
 
+# Check for verbose flag
+if [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
+    export GITWT_VERBOSE=1
+    shift
+    BRANCH="$1"
+fi
+
 # Get worktree path
 WT_PATH=$(gitwt_get_wt_path "$BRANCH")
 
@@ -39,7 +46,7 @@ fi
 
 # Remove worktree
 echo "Removing worktree at $WT_PATH"
-git worktree remove "$WT_PATH" || {
+gitwt_git worktree remove "$WT_PATH" || {
     echo "Error: Failed to remove worktree" >&2
     exit 1
 }

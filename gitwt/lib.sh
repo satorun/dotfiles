@@ -121,3 +121,17 @@ gitwt_get_wt_path() {
     echo "$wt_base/$sanitized_branch"
 }
 
+# Check if verbose mode is enabled
+# Returns 0 if verbose, 1 if not
+gitwt_is_verbose() {
+    [ "${GITWT_VERBOSE:-0}" = "1" ] || [ "${GITWT_VERBOSE:-0}" = "true" ]
+}
+
+# Execute git command with optional verbose output
+# Usage: gitwt_git <git-command> [args...]
+gitwt_git() {
+    if gitwt_is_verbose; then
+        echo "> git $*" >&2
+    fi
+    git "$@"
+}

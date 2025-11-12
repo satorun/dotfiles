@@ -26,13 +26,18 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     exit 0
 fi
 
+# Check for verbose flag
+if [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
+    export GITWT_VERBOSE=1
+fi
+
 # Get worktree base
 WT_BASE=$(gitwt_get_wt_base)
 
 echo "Pruning orphaned worktrees and empty directories..."
 
 # Get list of registered worktrees
-REGISTERED_WTS=$(git worktree list --porcelain | grep "^worktree " | cut -d' ' -f2-)
+REGISTERED_WTS=$(gitwt_git worktree list --porcelain | grep "^worktree " | cut -d' ' -f2-)
 
 # Check each directory in WT_BASE
 if [ -d "$WT_BASE" ]; then
@@ -68,6 +73,6 @@ fi
 
 # Prune worktree entries from Git
 echo "Pruning worktree entries from Git..."
-git worktree prune
+gitwt_git worktree prune
 
 echo "Prune completed"

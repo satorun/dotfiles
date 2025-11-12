@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# gitwt-back: Return to the original repository directory
+# Usage: gitwt-back
+
+set -e
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Try to find lib.sh: first in ~/.local/lib/gitwt, then relative to script
+if [ -f "$HOME/.local/lib/gitwt/lib.sh" ]; then
+    LIB_DIR="$HOME/.local/lib/gitwt"
+elif [ -f "$(dirname "$SCRIPT_DIR")/lib.sh" ]; then
+    LIB_DIR="$(dirname "$SCRIPT_DIR")"
+else
+    echo "Error: Could not find lib.sh" >&2
+    exit 1
+fi
+
+# Source the library
+source "$LIB_DIR/lib.sh"
+
+# Check for help flag
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    echo "Usage: gitwt-back" >&2
+    echo "  Return to the original repository directory from a worktree" >&2
+    echo "  Outputs the path to the original repository" >&2
+    exit 0
+fi
+
+# Get current repository root (works from both main repo and worktree)
+REPO_ROOT=$(gitwt_get_repo_root)
+
+# Check if we're in a worktree by checking if REPO_ROOT is under _wt/
+if [[ "$REPO_ROOT" == */_wt/* ]]; then
+    # We're in a worktree
+    # REPO_ROOT is like: .../_wt/<repo_name>/<branch>
+    # Original repo is at: .../<repo_name>
+    # So we need to go up from _wt/ to parent, then add repo_name
+    WT_DIR=$(dirname "$REPO_ROOT")  # .../_wt/<repo_name>
+    WT_BASE=$(dirname "$WT_DIR")    # .../_wt
+    WT_PARENT=$(dirname "$WT_BASE") # ... (parent of _wt)
+    REPO_NAME=$(basename "$WT_DIR")  # <repo_name>
+    ORIGINAL_REPO="$WT_PARENT/$REPO_NAME"
+    
+    # Convert to absolute path
+    ORIGINAL_REPO="$(cd "$WT_PARENT" && pwd)/$REPO_NAME"
+    
+    # Check if original repo exists
+    if [ ! -d "$ORIGINAL_REPO" ]; then
+        echo "Error: Original repository not found at $ORIGINAL_REPO" >&2
+        exit 1
+    fi
+    
+    echo "$ORIGINAL_REPO"
+else
+    # We're already in the original repository
+    echo "$REPO_ROOT"
+fi

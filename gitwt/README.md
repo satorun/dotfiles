@@ -163,4 +163,3 @@ echo $PATH | grep -q "$HOME/.local/bin" || export PATH="$HOME/.local/bin:$PATH"
 ## ライセンス
 
 このプロジェクトは dotfiles リポジトリの一部として公開されています。
-

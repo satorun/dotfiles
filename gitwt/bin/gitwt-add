@@ -30,6 +30,14 @@ fi
 BRANCH="$1"
 BASE="${2:-}"
 
+# Check for verbose flag
+if [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
+    export GITWT_VERBOSE=1
+    shift
+    BRANCH="$1"
+    BASE="${2:-}"
+fi
+
 # Get repository root
 REPO_ROOT=$(gitwt_get_repo_root)
 
@@ -46,7 +54,7 @@ else
     fi
     
     # Create branch
-    git branch "$BRANCH" "$BASE" || {
+    gitwt_git branch "$BRANCH" "$BASE" || {
         echo "Error: Failed to create branch '$BRANCH'" >&2
         exit 1
     }
@@ -68,7 +76,7 @@ fi
 
 # Create worktree
 echo "Creating worktree at $WT_PATH"
-git worktree add "$WT_PATH" "$BRANCH" || {
+gitwt_git worktree add "$WT_PATH" "$BRANCH" || {
     echo "Error: Failed to create worktree" >&2
     exit 1
 }

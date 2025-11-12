@@ -26,6 +26,11 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     exit 0
 fi
 
+# Check for verbose flag
+if [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
+    export GITWT_VERBOSE=1
+fi
+
 # Get repository root
 REPO_ROOT=$(gitwt_get_repo_root)
 
@@ -69,7 +74,7 @@ while IFS= read -r line; do
             CURRENT_BRANCH=""
         fi
     fi
-done < <(git worktree list --porcelain; echo "")
+done < <(gitwt_git worktree list --porcelain; echo "")
 
 # Also show main worktree
 echo "  (main) -> $REPO_ROOT"
