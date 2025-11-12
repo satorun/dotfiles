@@ -20,8 +20,13 @@ fi
 source "$LIB_DIR/lib.sh"
 
 # Check for verbose flag before subcommand
+# Default: verbose is enabled (use --quiet to disable)
 VERBOSE_FLAG=""
-if [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
+if [ "$1" = "-q" ] || [ "$1" = "--quiet" ]; then
+    export GITWT_VERBOSE=0
+    VERBOSE_FLAG="$1"
+    shift
+elif [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
     export GITWT_VERBOSE=1
     VERBOSE_FLAG="$1"
     shift
@@ -32,10 +37,11 @@ if [ $# -eq 0 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     cat <<EOF
 gitwt - Git worktree management tool
 
-Usage: gitwt [--verbose] <subcommand> [args...]
+Usage: gitwt [--quiet] <subcommand> [args...]
 
 Options:
-  -v, --verbose          Show executed git commands
+  -q, --quiet            Suppress verbose output (default: verbose enabled)
+  -v, --verbose          Show executed git commands (default, can be omitted)
 
 Subcommands:
   add <branch> [base]    Create a branch and its corresponding worktree
@@ -49,7 +55,7 @@ Subcommands:
 
 Examples:
   gitwt add feature/login-form
-  gitwt --verbose add feature/login-form
+  gitwt --quiet add feature/login-form  # Suppress verbose output
   gitwt cd feature/login-form
   gitwt back
   gitwt ls

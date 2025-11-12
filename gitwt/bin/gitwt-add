@@ -68,9 +68,15 @@ WT_PATH="$WT_BASE/$SANITIZED_BRANCH"
 # Create worktree base directory if it doesn't exist
 mkdir -p "$WT_BASE"
 
-# Check if worktree already exists
+# Check if worktree already exists (directory check)
 if [ -d "$WT_PATH" ]; then
-    echo "Error: Worktree already exists at $WT_PATH" >&2
+    echo "Error: Directory already exists at $WT_PATH" >&2
+    exit 1
+fi
+
+# Check if worktree is already registered in Git
+if gitwt_worktree_exists "$WT_PATH"; then
+    echo "Error: Worktree already registered at $WT_PATH" >&2
     exit 1
 fi
 
@@ -78,6 +84,10 @@ fi
 echo "Creating worktree at $WT_PATH"
 gitwt_git worktree add "$WT_PATH" "$BRANCH" || {
     echo "Error: Failed to create worktree" >&2
+    # Clean up: remove worktree directory if it was created
+    if [ -d "$WT_PATH" ]; then
+        rm -rf "$WT_PATH" 2>/dev/null || true
+    fi
     exit 1
 }
 

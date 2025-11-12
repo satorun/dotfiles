@@ -43,6 +43,30 @@ gitwt_get_wt_base() {
     echo "$wt_base"
 }
 
+# Validate branch name
+# Checks for empty, ".", "..", and control characters
+gitwt_validate_branch_name() {
+    local branch="$1"
+    
+    # Empty string check
+    if [ -z "$branch" ]; then
+        echo "Error: Branch name cannot be empty" >&2
+        exit 1
+    fi
+    
+    # "." and ".." check
+    if [ "$branch" = "." ] || [ "$branch" = ".." ]; then
+        echo "Error: Invalid branch name: '$branch' (cannot be '.' or '..')" >&2
+        exit 1
+    fi
+    
+    # Control characters check
+    if [[ "$branch" =~ [[:cntrl:]] ]]; then
+        echo "Error: Branch name contains control characters: '$branch'" >&2
+        exit 1
+    fi
+}
+
 # Sanitize branch name: replace / with __
 # Example: feature/login-form -> feature__login-form
 gitwt_sanitize_branch() {
@@ -51,6 +75,8 @@ gitwt_sanitize_branch() {
         echo "Error: Branch name is required" >&2
         exit 1
     fi
+    # Validate before sanitizing
+    gitwt_validate_branch_name "$branch"
     echo "$branch" | sed 's|/|__|g'
 }
 
@@ -121,10 +147,25 @@ gitwt_get_wt_path() {
     echo "$wt_base/$sanitized_branch"
 }
 
+# Check if worktree exists (registered in Git)
+# Returns 0 if exists, 1 if not
+gitwt_worktree_exists() {
+    local wt_path="$1"
+    if [ -z "$wt_path" ]; then
+        return 1
+    fi
+    # Convert to absolute path for comparison
+    local abs_path
+    abs_path="$(cd "$(dirname "$wt_path")" && pwd)/$(basename "$wt_path")" 2>/dev/null || echo "$wt_path"
+    git worktree list --porcelain 2>/dev/null | grep -q "^worktree $abs_path$"
+}
+
 # Check if verbose mode is enabled
 # Returns 0 if verbose, 1 if not
+# Default: verbose is enabled (set GITWT_VERBOSE=0 to disable)
 gitwt_is_verbose() {
-    [ "${GITWT_VERBOSE:-0}" = "1" ] || [ "${GITWT_VERBOSE:-0}" = "true" ]
+    local verbose="${GITWT_VERBOSE:-1}"
+    [ "$verbose" != "0" ] && [ "$verbose" != "false" ]
 }
 
 # Execute git command with optional verbose output

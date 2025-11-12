@@ -46,10 +46,12 @@ fi
 
 # Remove worktree
 echo "Removing worktree at $WT_PATH"
-gitwt_git worktree remove "$WT_PATH" || {
-    echo "Error: Failed to remove worktree" >&2
+if ! gitwt_git worktree remove "$WT_PATH"; then
+    echo "Error: Failed to remove worktree at $WT_PATH" >&2
+    echo "  The worktree may be locked or in use." >&2
+    echo "  Try: git worktree remove --force $WT_PATH" >&2
     exit 1
-}
+fi
 
 # Try to remove empty parent directories
 WT_BASE=$(gitwt_get_wt_base)

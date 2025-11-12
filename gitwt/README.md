@@ -17,61 +17,56 @@ Git worktreeを直感的に管理するためのコマンドラインツール�
 
 ## コマンド一覧
 
-### gitwt-add
+### gitwt (メインコマンド)
 
-ブランチとworktreeを作成します。ブランチが存在しない場合は自動で作成されます。
+すべての機能は `gitwt` コマンドからアクセスできます。デフォルトでは実行されるgitコマンドが表示されます（verboseモード）。
 
 ```bash
 # ブランチとworktreeを作成（デフォルトのstartpointから）
-gitwt-add feature/login-form
+gitwt add feature/login-form
 
 # 特定のブランチから作成
-gitwt-add feature/new-feature develop
-```
+gitwt add feature/new-feature develop
 
-### gitwt-path
+# verbose出力を抑制
+gitwt --quiet add feature/login-form
 
-worktreeのパスを出力します。`cd` コマンドと組み合わせて使用できます。
-
-```bash
 # worktreeパスを取得
-cd "$(gitwt-path feature/login-form)"
-```
+cd "$(gitwt path feature/login-form)"
 
-### gitwt-rm
+# worktreeディレクトリに移動（pathのエイリアス）
+cd "$(gitwt cd feature/login-form)"
 
-worktreeを削除します。
-
-```bash
 # worktreeを削除
-gitwt-rm feature/login-form
-```
+gitwt rm feature/login-form
 
-### gitwt-ls
-
-すべてのworktreeを一覧表示します。
-
-```bash
 # worktree一覧を表示
-gitwt-ls
-```
+gitwt ls
 
-### gitwt-prune
+# 元のリポジトリディレクトリに戻る（worktreeから実行時）
+cd "$(gitwt back)"
 
-孤児化したworktreeエントリと空ディレクトリを削除します。
+# 孤児化したworktreeエントリと空ディレクトリを削除
+gitwt prune
 
-```bash
-# 掃除を実行
-gitwt-prune
-```
-
-### gitwt-open
-
-新しいシェルを起動してworktreeディレクトリに移動します。
-
-```bash
 # worktreeでsubshellを開く
+gitwt open feature/login-form
+```
+
+### 個別コマンド（後方互換性）
+
+`gitwt-add`, `gitwt-ls`, `gitwt-rm` などの個別コマンドも使用可能です。これらは `gitwt` コマンドのラッパーとして機能します。
+
+```bash
+# 個別コマンドの例
+gitwt-add feature/login-form
+gitwt-path feature/login-form
+gitwt-rm feature/login-form
+gitwt-ls
+gitwt-prune
 gitwt-open feature/login-form
+gitwt-back
+gitwt-cd feature/login-form
 ```
 
 ## 使用例
@@ -80,35 +75,59 @@ gitwt-open feature/login-form
 
 ```bash
 # 1. ブランチとworktreeを作成
-gitwt-add feature/login-form
+gitwt add feature/login-form
 
 # 2. worktreeディレクトリに移動
-cd "$(gitwt-path feature/login-form)"
+cd "$(gitwt cd feature/login-form)"
 
 # 3. 作業を行う
 # ... 開発作業 ...
 
-# 4. 作業後に削除
-gitwt-rm feature/login-form
+# 4. 元のリポジトリに戻る
+cd "$(gitwt back)"
+
+# 5. 作業後に削除
+gitwt rm feature/login-form
 ```
 
 ### 複数のブランチで並行作業
 
 ```bash
 # 複数のブランチでworktreeを作成
-gitwt-add feature/login-form
-gitwt-add feature/user-profile
-gitwt-add bugfix/crash-fix
+gitwt add feature/login-form
+gitwt add feature/user-profile
+gitwt add bugfix/crash-fix
 
 # 一覧を確認
-gitwt-ls
+gitwt ls
 
 # 各worktreeで作業
-cd "$(gitwt-path feature/login-form)"
+cd "$(gitwt cd feature/login-form)"
 # ... 作業 ...
 
-cd "$(gitwt-path feature/user-profile)"
+cd "$(gitwt cd feature/user-profile)"
 # ... 作業 ...
+
+# 元のリポジトリに戻る
+cd "$(gitwt back)"
+```
+
+### Verboseモード
+
+デフォルトでは、実行されるgitコマンドが表示されます：
+
+```bash
+$ gitwt add feature/test
+Creating branch 'feature/test' from origin/HEAD
+> git branch feature/test origin/HEAD
+> git worktree add /path/to/_wt/repo/feature__test feature/test
+```
+
+verbose出力を抑制するには `--quiet` オプションを使用：
+
+```bash
+$ gitwt --quiet add feature/test
+Creating branch 'feature/test' from origin/HEAD
 ```
 
 ## ディレクトリ構造
@@ -138,10 +157,10 @@ worktreeは以下の場所に配置されます：
 
 ### worktreeが見つからない
 
-worktreeが存在しない場合は、`gitwt-add` で作成してください。
+worktreeが存在しない場合は、`gitwt add` で作成してください。
 
 ```bash
-gitwt-add <branch-name>
+gitwt add <branch-name>
 ```
 
 ### 孤児化したworktree
