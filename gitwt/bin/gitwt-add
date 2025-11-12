@@ -6,6 +6,8 @@ set -e
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Initialize: find and source lib.sh
 # Try to find lib.sh: first in ~/.local/lib/gitwt, then relative to script
 if [ -f "$HOME/.local/lib/gitwt/lib.sh" ]; then
     LIB_DIR="$HOME/.local/lib/gitwt"
@@ -27,16 +29,14 @@ if [ $# -lt 1 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     exit 0
 fi
 
+# Check for quiet flag (verbose is default)
+if [ "$1" = "-q" ] || [ "$1" = "--quiet" ]; then
+    export GITWT_VERBOSE=0
+    shift
+fi
+
 BRANCH="$1"
 BASE="${2:-}"
-
-# Check for verbose flag
-if [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
-    export GITWT_VERBOSE=1
-    shift
-    BRANCH="$1"
-    BASE="${2:-}"
-fi
 
 # Get repository root
 REPO_ROOT=$(gitwt_get_repo_root)

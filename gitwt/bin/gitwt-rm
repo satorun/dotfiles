@@ -6,6 +6,8 @@ set -e
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Initialize: find and source lib.sh
 # Try to find lib.sh: first in ~/.local/lib/gitwt, then relative to script
 if [ -f "$HOME/.local/lib/gitwt/lib.sh" ]; then
     LIB_DIR="$HOME/.local/lib/gitwt"
@@ -22,18 +24,17 @@ source "$LIB_DIR/lib.sh"
 # Check arguments
 if [ $# -lt 1 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     echo "Usage: gitwt-rm <branch>" >&2
-    echo "  Remove worktree for the specified branch" >&2
+    echo "  Remove worktree and local branch for the specified branch" >&2
     exit 0
 fi
 
-BRANCH="$1"
-
-# Check for verbose flag
-if [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
-    export GITWT_VERBOSE=1
+# Check for quiet flag (verbose is default)
+if [ "$1" = "-q" ] || [ "$1" = "--quiet" ]; then
+    export GITWT_VERBOSE=0
     shift
-    BRANCH="$1"
 fi
+
+BRANCH="$1"
 
 # Get worktree path
 WT_PATH=$(gitwt_get_wt_path "$BRANCH")
@@ -61,6 +62,24 @@ if [ -d "$WT_BASE" ]; then
     # Try to remove _wt/<repo_name> if empty
     if [ -d "$(dirname "$WT_BASE")" ]; then
         rmdir "$(dirname "$WT_BASE")" 2>/dev/null || true
+    fi
+fi
+
+# Remove local branch if it exists
+if git show-ref --verify --quiet refs/heads/"$BRANCH" 2>/dev/null; then
+    # Check if we're currently on this branch
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+    if [ "$CURRENT_BRANCH" = "$BRANCH" ]; then
+        echo "Warning: Cannot delete branch '$BRANCH' because it is currently checked out" >&2
+        echo "  Please switch to another branch first, then delete it manually" >&2
+    else
+        echo "Removing branch '$BRANCH'"
+        if ! gitwt_git branch -D "$BRANCH" 2>/dev/null; then
+            echo "Warning: Failed to delete branch '$BRANCH'" >&2
+            echo "  You may need to delete it manually: git branch -D $BRANCH" >&2
+        else
+            echo "Branch '$BRANCH' removed successfully"
+        fi
     fi
 fi
 

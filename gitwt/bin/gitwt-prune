@@ -6,6 +6,8 @@ set -e
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Initialize: find and source lib.sh
 # Try to find lib.sh: first in ~/.local/lib/gitwt, then relative to script
 if [ -f "$HOME/.local/lib/gitwt/lib.sh" ]; then
     LIB_DIR="$HOME/.local/lib/gitwt"
@@ -26,9 +28,9 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     exit 0
 fi
 
-# Check for verbose flag
-if [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
-    export GITWT_VERBOSE=1
+# Check for quiet flag (verbose is default)
+if [ "$1" = "-q" ] || [ "$1" = "--quiet" ]; then
+    export GITWT_VERBOSE=0
 fi
 
 # Get worktree base

@@ -156,7 +156,25 @@ gitwt_worktree_exists() {
     fi
     # Convert to absolute path for comparison
     local abs_path
-    abs_path="$(cd "$(dirname "$wt_path")" && pwd)/$(basename "$wt_path")" 2>/dev/null || echo "$wt_path"
+    if [[ "$wt_path" == /* ]]; then
+        # Already absolute path
+        abs_path="$wt_path"
+    else
+        # Convert to absolute path
+        if [ -d "$wt_path" ]; then
+            abs_path="$(cd "$wt_path" && pwd)" 2>/dev/null || return 1
+        else
+            # Path doesn't exist yet, try to resolve parent directory
+            local parent_dir="$(dirname "$wt_path")"
+            local basename_part="$(basename "$wt_path")"
+            if [ -d "$parent_dir" ]; then
+                abs_path="$(cd "$parent_dir" && pwd)/$basename_part" 2>/dev/null || return 1
+            else
+                # Can't resolve, use as-is
+                abs_path="$wt_path"
+            fi
+        fi
+    fi
     git worktree list --porcelain 2>/dev/null | grep -q "^worktree $abs_path$"
 }
 

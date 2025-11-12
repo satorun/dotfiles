@@ -6,6 +6,8 @@ set -e
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Initialize: find and source lib.sh
 # Try to find lib.sh: first in ~/.local/lib/gitwt, then relative to script
 if [ -f "$HOME/.local/lib/gitwt/lib.sh" ]; then
     LIB_DIR="$HOME/.local/lib/gitwt"

@@ -6,6 +6,8 @@ set -e
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Initialize: find and source lib.sh
 # Try to find lib.sh: first in ~/.local/lib/gitwt, then relative to script
 if [ -f "$HOME/.local/lib/gitwt/lib.sh" ]; then
     LIB_DIR="$HOME/.local/lib/gitwt"
@@ -46,7 +48,7 @@ Options:
 Subcommands:
   add <branch> [base]    Create a branch and its corresponding worktree
   path <branch>          Output the worktree path for the specified branch
-  rm <branch>            Remove worktree for the specified branch
+  rm <branch>            Remove worktree and local branch for the specified branch
   ls                      List all worktrees
   prune                   Clean up orphaned worktrees and empty directories
   open <branch>          Open a subshell in the worktree directory

@@ -19,6 +19,11 @@ path=(
   /Library/Apple/usr/bin(N-/)
 )
 
+# Add ~/.local/bin to PATH if not already present
+if [[ -d "$HOME/.local/bin" ]] && [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+  export PATH="$HOME/.local/bin:$PATH"
+fi
+
 #######
 # ALIAS
 #######
@@ -27,6 +32,50 @@ alias ls="ls -FG"
 alias la="ls -a"
 alias ll="ls -l"
 alias lla="ls -la"
+
+#######
+# gitwt (Git worktree management)
+#######
+# gitwt関数: addサブコマンド実行後に自動的にworktreeディレクトリに移動
+gitwt() {
+  local subcommand="$1"
+  shift
+  
+  if [[ "$subcommand" == "add" ]]; then
+    # gitwt add の場合、実行後にworktreeディレクトリに移動
+    # stdoutとstderrを分離して処理
+    local stdout_file=$(mktemp)
+    local stderr_file=$(mktemp)
+    
+    command gitwt add "$@" > "$stdout_file" 2> "$stderr_file"
+    local exit_code=$?
+    
+    # stderrを表示
+    cat "$stderr_file" >&2
+    
+    if [[ $exit_code -eq 0 ]]; then
+      # stdoutの最後の行がworktreeパス（絶対パス）であることを確認
+      local wt_path
+      wt_path=$(tail -n 1 "$stdout_file" 2>/dev/null)
+      
+      # パスが存在し、ディレクトリであることを確認
+      if [[ -n "$wt_path" ]] && [[ -d "$wt_path" ]]; then
+        cd "$wt_path"
+      fi
+    fi
+    
+    # stdoutも表示（パス情報など）
+    cat "$stdout_file"
+    
+    # 一時ファイルを削除
+    rm -f "$stdout_file" "$stderr_file"
+    
+    return $exit_code
+  else
+    # その他のサブコマンドは通常通り実行
+    command gitwt "$subcommand" "$@"
+  fi
+}
 
 #######
 # PROMPT
