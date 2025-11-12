@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# gitwt-rm: Remove worktree and optionally branch
+# Usage: gitwt-rm <branch>
+
+set -e
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Try to find lib.sh: first in ~/.local/lib/gitwt, then relative to script
+if [ -f "$HOME/.local/lib/gitwt/lib.sh" ]; then
+    LIB_DIR="$HOME/.local/lib/gitwt"
+elif [ -f "$(dirname "$SCRIPT_DIR")/lib.sh" ]; then
+    LIB_DIR="$(dirname "$SCRIPT_DIR")"
+else
+    echo "Error: Could not find lib.sh" >&2
+    exit 1
+fi
+
+# Source the library
+source "$LIB_DIR/lib.sh"
+
+# Check arguments
+if [ $# -lt 1 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    echo "Usage: gitwt-rm <branch>" >&2
+    echo "  Remove worktree for the specified branch" >&2
+    exit 0
+fi
+
+BRANCH="$1"
+
+# Get worktree path
+WT_PATH=$(gitwt_get_wt_path "$BRANCH")
+
+# Check if worktree exists
+if [ ! -d "$WT_PATH" ]; then
+    echo "Error: Worktree not found for branch '$BRANCH' at $WT_PATH" >&2
+    exit 1
+fi
+
+# Remove worktree
+echo "Removing worktree at $WT_PATH"
+git worktree remove "$WT_PATH" || {
+    echo "Error: Failed to remove worktree" >&2
+    exit 1
+}
+
+# Try to remove empty parent directories
+WT_BASE=$(gitwt_get_wt_base)
+if [ -d "$WT_BASE" ]; then
+    # Remove empty directories up to _wt/<repo_name>
+    rmdir "$WT_BASE" 2>/dev/null || true
+    # Try to remove _wt/<repo_name> if empty
+    if [ -d "$(dirname "$WT_BASE")" ]; then
+        rmdir "$(dirname "$WT_BASE")" 2>/dev/null || true
+    fi
+fi
+
+echo "Worktree removed successfully"

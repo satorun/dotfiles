@@ -217,6 +217,53 @@ else
 fi
 
 #######
+# gitwt (Git worktree management)
+#######
+echo_info "Setting up gitwt..."
+
+# Create ~/.local directories if they don't exist
+mkdir -p ~/.local/lib/gitwt
+mkdir -p ~/.local/bin
+
+# Copy gitwt library and scripts
+if [ -d "$DOTFILES_DIR/gitwt" ]; then
+  echo_info "Installing gitwt scripts..."
+  
+  # Copy lib.sh
+  if [ -f "$DOTFILES_DIR/gitwt/lib.sh" ]; then
+    cp "$DOTFILES_DIR/gitwt/lib.sh" ~/.local/lib/gitwt/lib.sh
+    chmod +x ~/.local/lib/gitwt/lib.sh
+    echo_success "gitwt library installed"
+  fi
+  
+  # Copy or link bin scripts
+  if [ -d "$DOTFILES_DIR/gitwt/bin" ]; then
+    for script in "$DOTFILES_DIR/gitwt/bin"/*; do
+      if [ -f "$script" ]; then
+        script_name=$(basename "$script")
+        # Use symlink to keep scripts in sync with dotfiles
+        if [ -L ~/.local/bin/"$script_name" ] || [ -f ~/.local/bin/"$script_name" ]; then
+          rm -f ~/.local/bin/"$script_name"
+        fi
+        ln -s "$script" ~/.local/bin/"$script_name"
+        chmod +x ~/.local/bin/"$script_name"
+      fi
+    done
+    echo_success "gitwt commands installed"
+  fi
+  
+  # Check if ~/.local/bin is in PATH
+  if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
+    echo_warn "~/.local/bin is not in your PATH"
+    echo_warn "Add this to your ~/.zshrc: export PATH=\"\$HOME/.local/bin:\$PATH\""
+  else
+    echo_success "~/.local/bin is in PATH"
+  fi
+else
+  echo_warn "gitwt directory not found in $DOTFILES_DIR (skipped)"
+fi
+
+#######
 # 完了
 #######
 echo ""
@@ -231,4 +278,5 @@ echo ""
 echo_info "To verify installation:"
 echo "  - zsh plugins: ls \$(brew --prefix)/share | grep zsh"
 echo "  - git config: git config --list"
+echo "  - gitwt commands: gitwt-ls (if in a Git repository)"
 echo ""
