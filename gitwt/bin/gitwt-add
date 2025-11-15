@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# gitwt-add: Create branch and worktree
+# Usage: gitwt-add <branch> [base]
+
+set -e
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Initialize: find and source lib.sh
+# Try to find lib.sh: first in ~/.local/lib/gitwt, then relative to script
+if [ -f "$HOME/.local/lib/gitwt/lib.sh" ]; then
+    LIB_DIR="$HOME/.local/lib/gitwt"
+elif [ -f "$(dirname "$SCRIPT_DIR")/lib.sh" ]; then
+    LIB_DIR="$(dirname "$SCRIPT_DIR")"
+else
+    echo "Error: Could not find lib.sh" >&2
+    exit 1
+fi
+
+# Source the library
+source "$LIB_DIR/lib.sh"
+
+# Check arguments
+if [ $# -lt 1 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    echo "Usage: gitwt-add <branch> [base]" >&2
+    echo "  Create a branch and its corresponding worktree" >&2
+    echo "  If branch doesn't exist, it will be created from base (default: origin/HEAD or main/master)" >&2
+    exit 0
+fi
+
+# Check for quiet flag (verbose is default)
+if [ "$1" = "-q" ] || [ "$1" = "--quiet" ]; then
+    export GITWT_VERBOSE=0
+    shift
+fi
+
+BRANCH="$1"
+BASE="${2:-}"
+
+# Get repository root
+REPO_ROOT=$(gitwt_get_repo_root)
+
+# Check if branch exists on remote only
+if gitwt_remote_branch_exists "$BRANCH" && ! gitwt_local_branch_exists "$BRANCH"; then
+    echo "Error: Branch '$BRANCH' exists on remote but not locally" >&2
+    echo "Please create a local branch first:" >&2
+    echo "  git checkout -b $BRANCH origin/$BRANCH" >&2
+    echo "Or create a new branch from a different base:" >&2
+    echo "  git checkout -b $BRANCH <base-branch>" >&2
+    exit 1
+fi
+
+# Check if branch already exists locally
+if gitwt_local_branch_exists "$BRANCH"; then
+    echo "Branch '$BRANCH' already exists"
+else
+    # Determine startpoint
+    if [ -z "$BASE" ]; then
+        BASE=$(gitwt_get_default_startpoint)
+        echo "Creating branch '$BRANCH' from $BASE"
+    else
+        echo "Creating branch '$BRANCH' from $BASE"
+    fi
+
+    # Create branch
+    gitwt_git branch "$BRANCH" "$BASE" || {
+        echo "Error: Failed to create branch '$BRANCH'" >&2
+        exit 1
+    }
+fi
+
+# Get worktree path
+WT_BASE=$(gitwt_get_wt_base)
+SANITIZED_BRANCH=$(gitwt_sanitize_branch "$BRANCH")
+WT_PATH="$WT_BASE/$SANITIZED_BRANCH"
+
+# Create worktree base directory if it doesn't exist
+mkdir -p "$WT_BASE"
+
+# Check if worktree already exists (directory check)
+if [ -d "$WT_PATH" ]; then
+    echo "Error: Directory already exists at $WT_PATH" >&2
+    exit 1
+fi
+
+# Check if worktree is already registered in Git
+if gitwt_worktree_exists "$WT_PATH"; then
+    echo "Error: Worktree already registered at $WT_PATH" >&2
+    exit 1
+fi
+
+# Create worktree
+echo "Creating worktree at $WT_PATH"
+gitwt_git worktree add "$WT_PATH" "$BRANCH" || {
+    echo "Error: Failed to create worktree" >&2
+    # Clean up: remove worktree directory if it was created
+    if [ -d "$WT_PATH" ]; then
+        rm -rf "$WT_PATH" 2>/dev/null || true
+    fi
+    exit 1
+}
+
+# Output the path for easy cd
+echo "$WT_PATH"
