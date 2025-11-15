@@ -41,8 +41,18 @@ BASE="${2:-}"
 # Get repository root
 REPO_ROOT=$(gitwt_get_repo_root)
 
-# Check if branch already exists
-if gitwt_branch_exists "$BRANCH"; then
+# Check if branch exists on remote only
+if gitwt_remote_branch_exists "$BRANCH" && ! gitwt_local_branch_exists "$BRANCH"; then
+    echo "Error: Branch '$BRANCH' exists on remote but not locally" >&2
+    echo "Please create a local branch first:" >&2
+    echo "  git checkout -b $BRANCH origin/$BRANCH" >&2
+    echo "Or create a new branch from a different base:" >&2
+    echo "  git checkout -b $BRANCH <base-branch>" >&2
+    exit 1
+fi
+
+# Check if branch already exists locally
+if gitwt_local_branch_exists "$BRANCH"; then
     echo "Branch '$BRANCH' already exists"
 else
     # Determine startpoint
@@ -52,7 +62,7 @@ else
     else
         echo "Creating branch '$BRANCH' from $BASE"
     fi
-    
+
     # Create branch
     gitwt_git branch "$BRANCH" "$BASE" || {
         echo "Error: Failed to create branch '$BRANCH'" >&2

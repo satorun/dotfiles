@@ -115,18 +115,36 @@ gitwt_branch_exists() {
     if [ -z "$branch" ]; then
         return 1
     fi
-    
+
     # Check local branches
     if git show-ref --verify --quiet refs/heads/"$branch" 2>/dev/null; then
         return 0
     fi
-    
+
     # Check remote branches
     if git show-ref --verify --quiet refs/remotes/origin/"$branch" 2>/dev/null; then
         return 0
     fi
-    
+
     return 1
+}
+
+# Check if branch exists locally
+gitwt_local_branch_exists() {
+    local branch="$1"
+    if [ -z "$branch" ]; then
+        return 1
+    fi
+    git show-ref --verify --quiet refs/heads/"$branch" 2>/dev/null
+}
+
+# Check if branch exists on remote
+gitwt_remote_branch_exists() {
+    local branch="$1"
+    if [ -z "$branch" ]; then
+        return 1
+    fi
+    git show-ref --verify --quiet refs/remotes/origin/"$branch" 2>/dev/null
 }
 
 # Get worktree path for a branch
