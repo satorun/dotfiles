@@ -77,7 +77,7 @@ gitwt_sanitize_branch() {
     fi
     # Validate before sanitizing
     gitwt_validate_branch_name "$branch"
-    echo "$branch" | sed 's|/|__|g'
+    echo "${branch//\//__}"
 }
 
 # Get default startpoint for branch creation

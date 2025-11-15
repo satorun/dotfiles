@@ -36,8 +36,13 @@ alias lla="ls -la"
 #######
 # gitwt (Git worktree management)
 #######
-# gitwt関数: addサブコマンド実行後に自動的にworktreeディレクトリに移動
+# gitwt関数: add/backサブコマンド実行後に自動的にディレクトリに移動
 gitwt() {
+  if [[ $# -eq 0 ]]; then
+    command gitwt
+    return $?
+  fi
+
   local subcommand="$1"
   shift
   
@@ -47,28 +52,58 @@ gitwt() {
     local stdout_file=$(mktemp)
     local stderr_file=$(mktemp)
     
+    # コマンドを実行
     command gitwt add "$@" > "$stdout_file" 2> "$stderr_file"
     local exit_code=$?
     
-    # stderrを表示
-    cat "$stderr_file" >&2
+    # stderrを先に表示（エラーメッセージなど）
+    if [[ -s "$stderr_file" ]]; then
+      cat "$stderr_file" >&2
+    fi
     
-    if [[ $exit_code -eq 0 ]]; then
-      # stdoutの最後の行がworktreeパス（絶対パス）であることを確認
-      local wt_path
-      wt_path=$(tail -n 1 "$stdout_file" 2>/dev/null)
+    # stdoutを表示
+    if [[ -s "$stdout_file" ]]; then
+      cat "$stdout_file"
       
-      # パスが存在し、ディレクトリであることを確認
-      if [[ -n "$wt_path" ]] && [[ -d "$wt_path" ]]; then
-        cd "$wt_path"
+      # 成功時、最後の行がworktreeパスか確認
+      if [[ $exit_code -eq 0 ]]; then
+        local wt_path
+        wt_path=$(tail -n 1 "$stdout_file" 2>/dev/null | tr -d '\r\n')
+        
+        # パスが存在し、ディレクトリで、絶対パスであることを確認
+        if [[ -n "$wt_path" ]] && [[ "$wt_path" == /* ]] && [[ -d "$wt_path" ]]; then
+          cd "$wt_path"
+        fi
       fi
     fi
     
-    # stdoutも表示（パス情報など）
-    cat "$stdout_file"
-    
     # 一時ファイルを削除
     rm -f "$stdout_file" "$stderr_file"
+    
+    return $exit_code
+  elif [[ "$subcommand" == "back" ]]; then
+    # gitwt back の場合、実行後に元のリポジトリディレクトリに移動
+    local output
+    output=$(command gitwt back "$@" 2>&1)
+    local exit_code=$?
+    
+    # エラーがある場合は表示して終了
+    if [[ $exit_code -ne 0 ]]; then
+      echo "$output" >&2
+      return $exit_code
+    fi
+    
+    # パスを取得（最後の行、改行を削除）
+    local repo_path
+    repo_path=$(echo "$output" | tail -n 1 | tr -d '\r\n')
+    
+    # 出力を表示
+    echo "$output"
+    
+    # パスが存在し、ディレクトリであることを確認して移動
+    if [[ -n "$repo_path" ]] && [[ -d "$repo_path" ]]; then
+      cd "$repo_path"
+    fi
     
     return $exit_code
   else
