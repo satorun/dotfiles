@@ -37,7 +37,35 @@ alias lla="ls -la"
 # gitwt (Git worktree management)
 #######
 wtgo() { cd "$(gitwt-path "$1")" }
-wtback() { cd "$(git rev-parse --show-toplevel)" }
+wtback() {
+  local repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [[ -z "$repo_root" ]]; then
+    echo "Error: Not in a git repository" >&2
+    return 1
+  fi
+
+  # Check if we're in a worktree by checking if repo_root is under _wt/
+  if [[ "$repo_root" == */_wt/* ]]; then
+    # We're in a worktree
+    # repo_root is like: .../_wt/<repo_name>/<branch>
+    # Original repo is at: .../<repo_name>
+    local wt_dir=$(dirname "$repo_root")  # .../_wt/<repo_name>
+    local wt_base=$(dirname "$wt_dir")    # .../_wt
+    local wt_parent=$(dirname "$wt_base") # ... (parent of _wt)
+    local repo_name=$(basename "$wt_dir")  # <repo_name>
+    local original_repo="$wt_parent/$repo_name"
+
+    if [[ ! -d "$original_repo" ]]; then
+      echo "Error: Original repository not found at $original_repo" >&2
+      return 1
+    fi
+
+    cd "$original_repo"
+  else
+    # We're already in the original repository
+    cd "$repo_root"
+  fi
+}
 
 #######
 # PROMPT

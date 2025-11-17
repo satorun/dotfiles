@@ -50,7 +50,9 @@ zshrcで定義された便利な関数：
 # worktreeに移動
 wtgo <branch>
 
-# リポジトリルートに戻る
+# 元のリポジトリに戻る
+# worktree内から実行した場合は元のリポジトリへ、
+# 元のリポジトリ内ではリポジトリルートへ移動
 wtback
 ```
 
@@ -70,7 +72,7 @@ wtgo feature/login-form
 # 3. 作業を行う
 # ... 開発作業 ...
 
-# 4. リポジトリルートに戻る
+# 4. 元のリポジトリに戻る
 wtback
 
 # 5. 作業後に削除
@@ -95,7 +97,7 @@ wtgo feature/login-form
 wtgo feature/user-profile
 # ... 作業 ...
 
-# リポジトリルートに戻る
+# 元のリポジトリに戻る
 wtback
 ```
 
