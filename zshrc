@@ -36,7 +36,10 @@ alias lla="ls -la"
 #######
 # gitwt (Git worktree management)
 #######
-wtgo() { cd "$(gitwt-path "$1")" }
+wtgo() {
+  local path
+  path=$(gitwt-path "$1") && cd "$path"
+}
 wtback() { cd "$(gitwt-root)" }
 
 #######
