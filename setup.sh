@@ -225,6 +225,14 @@ echo_info "Setting up gitwt..."
 mkdir -p ~/.local/lib/gitwt
 mkdir -p ~/.local/bin
 
+# Remove deprecated gitwt commands
+for deprecated_cmd in gitwt gitwt-cd gitwt-back gitwt-open; do
+  if [ -e ~/.local/bin/"$deprecated_cmd" ]; then
+    rm -f ~/.local/bin/"$deprecated_cmd"
+    echo_success "Removed deprecated command: $deprecated_cmd"
+  fi
+done
+
 # Copy gitwt library and scripts
 if [ -d "$DOTFILES_DIR/gitwt" ]; then
   echo_info "Installing gitwt scripts..."
