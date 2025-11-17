@@ -40,6 +40,9 @@ gitwt-prune
 
 # worktreeパスを取得（内部用）
 gitwt-path <branch>
+
+# 元のリポジトリパスを取得（内部用）
+gitwt-root
 ```
 
 ### zshrc関数（ディレクトリ移動）
