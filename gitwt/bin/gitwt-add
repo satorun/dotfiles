@@ -101,5 +101,8 @@ gitwt_git worktree add "$WT_PATH" "$BRANCH" || {
     exit 1
 }
 
-# Output the path for easy cd
-echo "$WT_PATH"
+# Success message with navigation hint
+echo ""
+echo "✓ Worktree created successfully!"
+echo "  To navigate: wtgo $BRANCH"
+echo "  Or use: cd $WT_PATH"
