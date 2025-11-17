@@ -38,9 +38,14 @@ alias lla="ls -la"
 #######
 wtgo() {
   local path
-  path=$(gitwt-path "$1") && cd "$path"
+  path=$(gitwt-path "$1") || return $?
+  [[ -n "$path" ]] && cd "$path"
 }
-wtback() { cd "$(gitwt-root)" }
+wtback() {
+  local path
+  path=$(gitwt-root) || return $?
+  [[ -n "$path" ]] && cd "$path"
+}
 
 #######
 # PROMPT
