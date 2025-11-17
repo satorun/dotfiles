@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# gitwt-ls: List all worktrees
+# Usage: gitwt-ls
+
+set -e
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Initialize: find and source lib.sh
+# Try to find lib.sh: first in ~/.local/lib/gitwt, then relative to script
+if [ -f "$HOME/.local/lib/gitwt/lib.sh" ]; then
+    LIB_DIR="$HOME/.local/lib/gitwt"
+elif [ -f "$(dirname "$SCRIPT_DIR")/lib.sh" ]; then
+    LIB_DIR="$(dirname "$SCRIPT_DIR")"
+else
+    echo "Error: Could not find lib.sh" >&2
+    exit 1
+fi
+
+# Source the library
+source "$LIB_DIR/lib.sh"
+
+# Check for help flag
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    echo "Usage: gitwt-ls" >&2
+    echo "  List all worktrees" >&2
+    exit 0
+fi
+
+# Check for quiet flag (verbose is default)
+if [ "$1" = "-q" ] || [ "$1" = "--quiet" ]; then
+    export GITWT_VERBOSE=0
+fi
+
+# Get repository root
+REPO_ROOT=$(gitwt_get_repo_root)
+
+# Get worktree base
+WT_BASE=$(gitwt_get_wt_base)
+
+# List worktrees
+echo "Worktrees:"
+echo "----------"
+
+# Parse porcelain output
+CURRENT_WT_PATH=""
+CURRENT_BRANCH=""
+while IFS= read -r line; do
+    if [[ "$line" == worktree* ]]; then
+        CURRENT_WT_PATH="${line#worktree }"
+        CURRENT_BRANCH=""
+    elif [[ "$line" == branch* ]]; then
+        CURRENT_BRANCH="${line#branch }"
+    elif [[ -z "$line" ]]; then
+        # Empty line indicates end of worktree entry
+        if [ -n "$CURRENT_WT_PATH" ]; then
+            if [[ "$CURRENT_WT_PATH" == "$WT_BASE"/* ]]; then
+                # Extract branch name from path
+                RELATIVE_PATH="${CURRENT_WT_PATH#$WT_BASE/}"
+                BRANCH_NAME="${RELATIVE_PATH//__//}"
+                if [ -n "$CURRENT_BRANCH" ]; then
+                    echo "  $BRANCH_NAME ($CURRENT_BRANCH) -> $CURRENT_WT_PATH"
+                else
+                    echo "  $BRANCH_NAME -> $CURRENT_WT_PATH"
+                fi
+            elif [ "$CURRENT_WT_PATH" != "$REPO_ROOT" ]; then
+                # Show other worktrees too
+                if [ -n "$CURRENT_BRANCH" ]; then
+                    echo "  (other: $CURRENT_BRANCH) -> $CURRENT_WT_PATH"
+                else
+                    echo "  (other) -> $CURRENT_WT_PATH"
+                fi
+            fi
+            CURRENT_WT_PATH=""
+            CURRENT_BRANCH=""
+        fi
+    fi
+done < <(gitwt_git worktree list --porcelain; echo "")
+
+# Also show main worktree
+echo "  (main) -> $REPO_ROOT"

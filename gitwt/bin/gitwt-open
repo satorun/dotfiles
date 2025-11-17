@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# gitwt-open: Open a subshell in the worktree directory
+# Usage: gitwt-open <branch>
+
+set -e
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Initialize: find and source lib.sh
+# Try to find lib.sh: first in ~/.local/lib/gitwt, then relative to script
+if [ -f "$HOME/.local/lib/gitwt/lib.sh" ]; then
+    LIB_DIR="$HOME/.local/lib/gitwt"
+elif [ -f "$(dirname "$SCRIPT_DIR")/lib.sh" ]; then
+    LIB_DIR="$(dirname "$SCRIPT_DIR")"
+else
+    echo "Error: Could not find lib.sh" >&2
+    exit 1
+fi
+
+# Source the library
+source "$LIB_DIR/lib.sh"
+
+# Check arguments
+if [ $# -lt 1 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    echo "Usage: gitwt-open <branch>" >&2
+    echo "  Open a subshell in the worktree directory for the specified branch" >&2
+    exit 0
+fi
+
+BRANCH="$1"
+
+# Get worktree path
+WT_PATH=$(gitwt_get_wt_path "$BRANCH")
+
+# Check if worktree exists
+if [ ! -d "$WT_PATH" ]; then
+    echo "Error: Worktree not found for branch '$BRANCH' at $WT_PATH" >&2
+    echo "  Use 'gitwt-add $BRANCH' to create it" >&2
+    exit 1
+fi
+
+# Determine shell
+if [ -n "$ZSH_VERSION" ]; then
+    SHELL_CMD="zsh"
+elif [ -n "$BASH_VERSION" ]; then
+    SHELL_CMD="bash"
+else
+    SHELL_CMD="${SHELL:-bash}"
+fi
+
+# Change to worktree directory and start subshell
+echo "Opening subshell in $WT_PATH"
+cd "$WT_PATH" && exec "$SHELL_CMD"

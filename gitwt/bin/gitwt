@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+# gitwt: Git worktree management tool (main command)
+# Usage: gitwt <subcommand> [args...]
+
+set -e
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Initialize: find and source lib.sh
+# Try to find lib.sh: first in ~/.local/lib/gitwt, then relative to script
+if [ -f "$HOME/.local/lib/gitwt/lib.sh" ]; then
+    LIB_DIR="$HOME/.local/lib/gitwt"
+elif [ -f "$(dirname "$SCRIPT_DIR")/lib.sh" ]; then
+    LIB_DIR="$(dirname "$SCRIPT_DIR")"
+else
+    echo "Error: Could not find lib.sh" >&2
+    exit 1
+fi
+
+# Source the library
+source "$LIB_DIR/lib.sh"
+
+# Check for verbose flag before subcommand
+# Default: verbose is enabled (use --quiet to disable)
+VERBOSE_FLAG=""
+if [ "$1" = "-q" ] || [ "$1" = "--quiet" ]; then
+    export GITWT_VERBOSE=0
+    VERBOSE_FLAG="$1"
+    shift
+elif [ "$1" = "-v" ] || [ "$1" = "--verbose" ]; then
+    export GITWT_VERBOSE=1
+    VERBOSE_FLAG="$1"
+    shift
+fi
+
+# Show help if no arguments or --help
+if [ $# -eq 0 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    cat <<EOF
+gitwt - Git worktree management tool
+
+Usage: gitwt [--quiet] <subcommand> [args...]
+
+Options:
+  -q, --quiet            Suppress verbose output (default: verbose enabled)
+  -v, --verbose          Show executed git commands (default, can be omitted)
+
+Subcommands:
+  add <branch> [base]    Create a branch and its corresponding worktree
+  path <branch>          Output the worktree path for the specified branch
+  rm <branch>            Remove worktree and local branch for the specified branch
+  ls                      List all worktrees
+  prune                   Clean up orphaned worktrees and empty directories
+  open <branch>          Open a subshell in the worktree directory
+  back                    Return to the original repository directory
+  cd <branch>            Change to the worktree directory for the specified branch
+
+Examples:
+  gitwt add feature/login-form
+  gitwt --quiet add feature/login-form  # Suppress verbose output
+  gitwt cd feature/login-form
+  gitwt back
+  gitwt ls
+
+For more information about a subcommand, run: gitwt <subcommand> --help
+EOF
+    exit 0
+fi
+
+SUBCOMMAND="$1"
+shift
+
+# Dispatch to subcommand
+case "$SUBCOMMAND" in
+    add)
+        exec "$SCRIPT_DIR/gitwt-add" "$@"
+        ;;
+    path)
+        exec "$SCRIPT_DIR/gitwt-path" "$@"
+        ;;
+    rm)
+        exec "$SCRIPT_DIR/gitwt-rm" "$@"
+        ;;
+    ls)
+        exec "$SCRIPT_DIR/gitwt-ls" "$@"
+        ;;
+    prune)
+        exec "$SCRIPT_DIR/gitwt-prune" "$@"
+        ;;
+    open)
+        exec "$SCRIPT_DIR/gitwt-open" "$@"
+        ;;
+    back)
+        exec "$SCRIPT_DIR/gitwt-back" "$@"
+        ;;
+    cd)
+        exec "$SCRIPT_DIR/gitwt-cd" "$@"
+        ;;
+    *)
+        echo "Error: Unknown subcommand '$SUBCOMMAND'" >&2
+        echo "Run 'gitwt --help' for usage information" >&2
+        exit 1
+        ;;
+esac

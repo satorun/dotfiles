@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# gitwt-rm: Remove worktree and optionally branch
+# Usage: gitwt-rm <branch>
+
+set -e
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Initialize: find and source lib.sh
+# Try to find lib.sh: first in ~/.local/lib/gitwt, then relative to script
+if [ -f "$HOME/.local/lib/gitwt/lib.sh" ]; then
+    LIB_DIR="$HOME/.local/lib/gitwt"
+elif [ -f "$(dirname "$SCRIPT_DIR")/lib.sh" ]; then
+    LIB_DIR="$(dirname "$SCRIPT_DIR")"
+else
+    echo "Error: Could not find lib.sh" >&2
+    exit 1
+fi
+
+# Source the library
+source "$LIB_DIR/lib.sh"
+
+# Check arguments
+if [ $# -lt 1 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    echo "Usage: gitwt-rm <branch>" >&2
+    echo "  Remove worktree and local branch for the specified branch" >&2
+    exit 0
+fi
+
+# Check for quiet flag (verbose is default)
+if [ "$1" = "-q" ] || [ "$1" = "--quiet" ]; then
+    export GITWT_VERBOSE=0
+    shift
+fi
+
+BRANCH="$1"
+
+# Get worktree path
+WT_PATH=$(gitwt_get_wt_path "$BRANCH")
+
+# Check if worktree exists
+if [ ! -d "$WT_PATH" ]; then
+    echo "Error: Worktree not found for branch '$BRANCH' at $WT_PATH" >&2
+    exit 1
+fi
+
+# Remove worktree
+echo "Removing worktree at $WT_PATH"
+if ! gitwt_git worktree remove "$WT_PATH"; then
+    echo "Error: Failed to remove worktree at $WT_PATH" >&2
+    echo "  The worktree may be locked or in use." >&2
+    echo "  Try: git worktree remove --force $WT_PATH" >&2
+    exit 1
+fi
+
+# Try to remove empty parent directories
+WT_BASE=$(gitwt_get_wt_base)
+if [ -d "$WT_BASE" ]; then
+    # Remove empty directories up to _wt/<repo_name>
+    rmdir "$WT_BASE" 2>/dev/null || true
+    # Try to remove _wt/<repo_name> if empty
+    if [ -d "$(dirname "$WT_BASE")" ]; then
+        rmdir "$(dirname "$WT_BASE")" 2>/dev/null || true
+    fi
+fi
+
+# Remove local branch if it exists
+if git show-ref --verify --quiet refs/heads/"$BRANCH" 2>/dev/null; then
+    # Check if we're currently on this branch
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+    if [ "$CURRENT_BRANCH" = "$BRANCH" ]; then
+        echo "Warning: Cannot delete branch '$BRANCH' because it is currently checked out" >&2
+        echo "  Please switch to another branch first, then delete it manually" >&2
+    else
+        echo "Removing branch '$BRANCH'"
+        if ! gitwt_git branch -D "$BRANCH" 2>/dev/null; then
+            echo "Warning: Failed to delete branch '$BRANCH'" >&2
+            echo "  You may need to delete it manually: git branch -D $BRANCH" >&2
+        else
+            echo "Branch '$BRANCH' removed successfully"
+        fi
+    fi
+fi
+
+echo "Worktree removed successfully"

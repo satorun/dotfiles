@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# gitwt-prune: Clean up orphaned worktrees and empty directories
+# Usage: gitwt-prune
+
+set -e
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Initialize: find and source lib.sh
+# Try to find lib.sh: first in ~/.local/lib/gitwt, then relative to script
+if [ -f "$HOME/.local/lib/gitwt/lib.sh" ]; then
+    LIB_DIR="$HOME/.local/lib/gitwt"
+elif [ -f "$(dirname "$SCRIPT_DIR")/lib.sh" ]; then
+    LIB_DIR="$(dirname "$SCRIPT_DIR")"
+else
+    echo "Error: Could not find lib.sh" >&2
+    exit 1
+fi
+
+# Source the library
+source "$LIB_DIR/lib.sh"
+
+# Check for help flag
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    echo "Usage: gitwt-prune" >&2
+    echo "  Clean up orphaned worktrees and empty directories" >&2
+    exit 0
+fi
+
+# Check for quiet flag (verbose is default)
+if [ "$1" = "-q" ] || [ "$1" = "--quiet" ]; then
+    export GITWT_VERBOSE=0
+fi
+
+# Get worktree base
+WT_BASE=$(gitwt_get_wt_base)
+
+echo "Pruning orphaned worktrees and empty directories..."
+
+# Get list of registered worktrees
+REGISTERED_WTS=$(gitwt_git worktree list --porcelain | grep "^worktree " | cut -d' ' -f2-)
+
+# Check each directory in WT_BASE
+if [ -d "$WT_BASE" ]; then
+    for dir in "$WT_BASE"/*; do
+        if [ -d "$dir" ]; then
+            # Check if this directory is registered as a worktree
+            FOUND=0
+            while IFS= read -r wt_path; do
+                if [ "$dir" = "$wt_path" ]; then
+                    FOUND=1
+                    break
+                fi
+            done <<< "$REGISTERED_WTS"
+            
+            # If not found in registered worktrees, it's orphaned
+            if [ $FOUND -eq 0 ]; then
+                echo "Removing orphaned directory: $dir"
+                rm -rf "$dir"
+            fi
+        fi
+    done
+    
+    # Remove empty directories
+    if [ -d "$WT_BASE" ] && [ -z "$(ls -A "$WT_BASE" 2>/dev/null)" ]; then
+        echo "Removing empty directory: $WT_BASE"
+        rmdir "$WT_BASE"
+        # Try to remove parent _wt directory if empty
+        if [ -d "$(dirname "$WT_BASE")" ] && [ -z "$(ls -A "$(dirname "$WT_BASE")" 2>/dev/null)" ]; then
+            rmdir "$(dirname "$WT_BASE")"
+        fi
+    fi
+fi
+
+# Prune worktree entries from Git
+echo "Pruning worktree entries from Git..."
+gitwt_git worktree prune
+
+echo "Prune completed"
