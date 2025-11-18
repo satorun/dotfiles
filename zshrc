@@ -93,8 +93,10 @@ git_prompt() {
 }
 
 # precmd関数を安全に追加(他のプラグインと競合しないように)
+precmd_functions=(${precmd_functions:#add_newline})
 precmd_functions+=(add_newline)
 # git_prompt を有効化する場合は以下のコメントを解除
+# precmd_functions=(${precmd_functions:#git_prompt})
 # precmd_functions+=(git_prompt)
 
 #######
