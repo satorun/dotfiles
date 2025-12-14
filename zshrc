@@ -33,6 +33,9 @@ alias la="ls -a"
 alias ll="ls -l"
 alias lla="ls -la"
 
+# LSCOLORS
+export LSCOLORS=Exfxcxdxbxegedabagacad
+
 #######
 # gitwt (Git worktree management)
 #######
